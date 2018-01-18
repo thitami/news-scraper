@@ -47,6 +47,6 @@ class NewsScraperCommand extends Command
     public function handle()
     {
         $news = $this->newsScraperService->getSourcesNews();
-       dd($news);
+        dd($news);
     }
 }

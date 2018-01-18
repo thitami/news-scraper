@@ -21,7 +21,7 @@ class NewsScraperServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-//        parent::boot();
+        //
     }
 
     /**
@@ -34,14 +34,5 @@ class NewsScraperServiceProvider extends ServiceProvider
         $this->app->bind(NewsScraperService::class, function ($app) {
             return new NewsScraperService($app->make(NewsScraperRepository::class), $app->make(Client::class));
         });
-
-//        $this->app->bind(
-//            NewsScraperService::class,
-//            function ($app) {
-//                return new NewsScraperService(
-//                    $app->make(NewsScraperRepository::class)
-//                );
-//            }
-//        );
     }
 }

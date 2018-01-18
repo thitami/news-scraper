@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\NewsScraper\NewsScraperRepositoryInterface;
+use Carbon\Carbon;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\BadResponseException;
 use Illuminate\Database\Eloquent\JsonEncodingException;
@@ -33,19 +34,17 @@ class NewsScraperService
     {
         $this->newsScraperRepository = $newsScraperRepository;
         $this->httpClient = $httpClient;
-
     }
 
     public function getSourcesNews()
     {
         $sources = config('news.sources');
 
-        foreach ($sources as $type => $baseUrl) {
+        foreach ($sources as $sourceType => $baseUrl) {
 
-            switch ($type) {
+            switch ($sourceType) {
                 case "API" :
-                    $topStoriesIds = $this->get('topstories.json', $baseUrl);
-                    dd($topStoriesIds);
+                    $this->processAPISources($baseUrl);
                     break;
 
                 case "RSS" :
@@ -72,26 +71,52 @@ class NewsScraperService
     /**
      * GET request to API
      *
-     * @param string $endpoint
-     * @param string $baseUrl
+     * @param string $url
      * @param array $parameters
      * @return mixed|null
      */
-    protected function get($endpoint, $baseUrl, $parameters = [])
+    protected function processAPISources($url, $parameters = [])
     {
         try {
-            $url = $baseUrl.$endpoint;
+            $response = $this->httpClient->get($url[0]);
+            $topStoriesIds = $response->getBody()->getContents();
 
-            $response = $this->httpClient->get($url, ['query' => $parameters]);
+            array_map(array($this, 'storeStoryDetails'), json_decode($topStoriesIds));
 
-            return $response->json();
         } catch (BadResponseException $e) {
             $body = (string)$e->getResponse()->getBody();
             $message = "Unable to parse JSON data: JSON_ERROR_SYNTAX - Syntax error, malformed JSON\n\n{$body}";
-
-            throw (new JsonEncodingException($message))->setResponse($response);
-
-            return null;
+            throw (new JsonEncodingException($message));
         }
+    }
+
+    /**
+     * @param $storyId
+     * @return string
+     */
+    private function storeStoryDetails($storyId)
+    {
+        $response = $this->httpClient->get("https://hacker-news.firebaseio.com/v0/item/{$storyId}.json");
+        $story = $response->getBody()->getContents();
+        $normalizedStory = $this->normalizeHackerNewsStory(json_decode($story, true));
+
+        return $this->newsScraperRepository->saveStory($normalizedStory);
+    }
+
+    /**
+     * @param $story
+     * @return array
+     */
+    public function normalizeHackerNewsStory($story)
+    {
+        $story['date'] = Carbon::createFromTimestamp($story['time']);
+        unset($story['time']);
+        $allowed = ['date', 'title', 'summary', 'url'];
+
+        return array_filter($story, function ($key) use ($allowed) {
+            return in_array($key, $allowed);
+        },
+            ARRAY_FILTER_USE_KEY
+        );
     }
 }
