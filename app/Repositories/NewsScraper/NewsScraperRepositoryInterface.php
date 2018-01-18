@@ -1,6 +1,6 @@
 <?php
 
-namespace NewsScraper;
+namespace App\Repositories\NewsScraper;
 
 
 interface NewsScraperRepositoryInterface

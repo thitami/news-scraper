@@ -41,6 +41,13 @@ $app->singleton(
     App\Exceptions\Handler::class
 );
 
+//'providers' => [
+//    // Other Service Providers
+//
+//    App\Providers\ComposerServiceProvider::class,
+//],
+
+
 /*
 |--------------------------------------------------------------------------
 | Return The Application
