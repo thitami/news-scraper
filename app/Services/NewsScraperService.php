@@ -39,18 +39,18 @@ class NewsScraperService
     public function getSourcesNews()
     {
         $sources = config('news.sources');
-
         foreach ($sources as $sourceType => $baseUrl) {
-
             switch ($sourceType) {
                 case "API" :
                     $this->processAPISources($baseUrl);
                     break;
 
                 case "RSS" :
+                    //todo
                     break;
 
                 case "DOM" :
+                    //todo
                     break;
 
                 default:
@@ -91,6 +91,9 @@ class NewsScraperService
     }
 
     /**
+     * Stores the HN Story details into the DB after calling the HN API and
+     * processing the fetched data
+     *
      * @param $storyId
      * @return string
      */
@@ -104,6 +107,7 @@ class NewsScraperService
     }
 
     /**
+     * Normalizes the HN story array.
      * @param $story
      * @return array
      */

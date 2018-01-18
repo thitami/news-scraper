@@ -46,7 +46,8 @@ class NewsScraperCommand extends Command
      */
     public function handle()
     {
-        $news = $this->newsScraperService->getSourcesNews();
-        dd($news);
+        $this->info('Starting to scrap the data from the given sources');
+        $this->newsScraperService->getSourcesNews();
+        $this->info('Finished scraping the data');
     }
 }
